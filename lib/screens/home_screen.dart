@@ -88,18 +88,21 @@ class HomeScreen extends StatelessWidget {
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      viewModel.deleteTask(task.id);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Task deleted')),
-                      );
+                    onPressed: () async {
+                      await viewModel.deleteTask(task.id);
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Task deleted')),
+                        );
+                      }
                     },
                   ),
                   leading: Checkbox(
                     value: task.completed,
-                    onChanged: (bool? value) {
+                    onChanged: (bool? value) async {
                       task.completed = value ?? false;
-                      viewModel.updateTask(task);
+                      await viewModel.updateTask(task);
                     },
                     activeColor: Theme.of(context).colorScheme.primary,
                     shape: RoundedRectangleBorder(

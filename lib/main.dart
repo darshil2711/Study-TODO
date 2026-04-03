@@ -39,7 +39,7 @@ class StudyTodoApp extends StatelessWidget {
           backgroundColor: Colors.transparent,
           scrolledUnderElevation: 0,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 0, // Flat design
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
