@@ -32,6 +32,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         id: const Uuid().v4(),
         title: _titleController.text.trim(),
         description: _descController.text.trim(),
+        dueDate: DateTime.now().add(
+          const Duration(days: 1),
+        ), // Default due date
       );
 
       // Part 7: System Feedback - Loading indicator during action
@@ -50,12 +53,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
       if (!mounted) return;
 
-      // Safely capture instances before the context is unmounted by popping
-      final navigator = Navigator.of(context);
-      final messenger = ScaffoldMessenger.of(context);
+      // Safely close the loading dialog overlay first
+      Navigator.of(context, rootNavigator: true).pop();
 
-      navigator.pop(); // close loading dialog
-      navigator.pop(); // navigate back to Home
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.of(context).pop(); // Navigate back to Home
 
       // Part 7: System Feedback - Success Message
       messenger.showSnackBar(
@@ -105,10 +108,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     const SizedBox(height: 24),
                     TextFormField(
                       controller: _titleController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Task Title',
                         hintText: 'e.g., Read Chapter 4',
-                        prefixIcon: Icon(Icons.title),
+                        prefixIcon: const Icon(Icons.title),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
                       ),
                       // Part 6: Validation rules
                       validator: (value) {
@@ -124,17 +132,22 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _descController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Description (Optional)',
                         alignLabelWithHint: true,
-                        prefixIcon: Padding(
+                        prefixIcon: const Padding(
                           padding: EdgeInsets.only(
-                            bottom: 50.0,
+                            bottom: 60.0,
                           ), // Aligns icon to top
                           child: Icon(Icons.description),
                         ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
                       ),
-                      maxLines: 3,
+                      maxLines: 4,
                     ),
                   ],
                 ),
@@ -147,7 +160,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                 child: ElevatedButton(
                   onPressed: _saveTask,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text(
                     'Save Task',

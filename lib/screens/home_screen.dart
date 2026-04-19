@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../models/study_task.dart';
 import '../viewmodels/task_viewmodel.dart';
 import 'add_task_screen.dart';
-import 'task_detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,14 +13,14 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Study Tasks',
+          'Study TO DO',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      // Part 5: State management (listening to ViewModel)
+      backgroundColor: Colors.grey.shade50,
+      // Consumer optimizes rendering by only rebuilding the list when tasks change
       body: Consumer<TaskViewModel>(
         builder: (context, viewModel, child) {
-          // Part 7: Loading Indicator
           if (viewModel.isLoading && viewModel.tasks.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -32,82 +33,65 @@ class HomeScreen extends StatelessWidget {
                   Icon(
                     Icons.assignment_turned_in_outlined,
                     size: 80,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.5),
+                    color: Colors.deepPurple.shade200,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No tasks yet!',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'No study tasks yet!\nTime to plan your success.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
                   ),
-                  const SizedBox(height: 8),
-                  const Text('Tap + to add your first study task.'),
                 ],
               ),
             );
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             itemCount: viewModel.tasks.length,
             itemBuilder: (context, index) {
               final task = viewModel.tasks[index];
               return Card(
-                margin: const EdgeInsets.only(bottom: 12),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
-                  // Part 3: Screen transitions and stack navigation
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TaskDetailScreen(task: task),
-                      ),
-                    );
-                  },
                   title: Text(
                     task.title,
                     style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: task.completed ? Colors.grey : Colors.black87,
                       decoration: task.completed
                           ? TextDecoration.lineThrough
-                          : null,
+                          : TextDecoration.none,
                     ),
                   ),
-                  subtitle: Text(
-                    task.description.isEmpty
-                        ? 'No description'
-                        : task.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () async {
-                      await viewModel.deleteTask(task.id);
-
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Task deleted')),
-                        );
-                      }
-                    },
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text('Due: ${task.dueDateLabel}'),
                   ),
                   leading: Checkbox(
                     value: task.completed,
-                    onChanged: (bool? value) async {
-                      task.completed = value ?? false;
-                      await viewModel.updateTask(task);
-                    },
-                    activeColor: Theme.of(context).colorScheme.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
+                    onChanged: (val) {
+                      task.completed = val ?? false;
+                      viewModel.updateTask(task);
+                    },
+                  ),
+                  trailing: IconButton(
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: Colors.red.shade400,
+                    ),
+                    onPressed: () => viewModel.deleteTask(task.id),
                   ),
                 ),
               );
@@ -115,15 +99,15 @@ class HomeScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        elevation: 2,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AddTaskScreen()),
-        ),
-        child: const Icon(Icons.add, size: 28),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddTaskScreen()),
+          );
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Add Task'),
       ),
     );
   }

@@ -1,76 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'screens/home_screen.dart';
+import 'env_config.dart';
 import 'services/task_repository.dart';
 import 'viewmodels/task_viewmodel.dart';
+import 'screens/home_screen.dart';
 
 void main() async {
+  // Ensure Flutter engine is fully initialized before using async platform channels
   WidgetsFlutterBinding.ensureInitialized();
-  final repository = await TaskRepository.create();
+
+  // Part 4: Load environment variables based on the current build mode
+  await EnvConfig.loadEnv();
+
+  // Part 3: Initialize the secure, encrypted local storage repository
+  final taskRepository = await TaskRepository.create();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => TaskViewModel(repository),
-      child: const StudyTodoApp(),
+    MultiProvider(
+      providers: [
+        // Part 1 & 2: Centralized ViewModel provided to the entire widget tree
+        ChangeNotifierProvider(create: (_) => TaskViewModel(taskRepository)),
+      ],
+      child: const StudyToDoApp(),
     ),
   );
 }
 
-class StudyTodoApp extends StatelessWidget {
-  const StudyTodoApp({super.key});
+class StudyToDoApp extends StatelessWidget {
+  const StudyToDoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Study TO DO',
       theme: ThemeData(
+        useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF5B4CCC), // A vibrant indigo/purple
+          seedColor: Colors.deepPurple,
           brightness: Brightness.light,
         ),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(
-          0xFFF7F8FA,
-        ), // Soft gray background
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          scrolledUnderElevation: 0,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 0, // Flat design
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Colors.grey.shade200, width: 1),
-          ),
-          color: Colors.white,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            elevation: 0,
-            backgroundColor: const Color(0xFF5B4CCC),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-        ),
+        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
       ),
       home: const HomeScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

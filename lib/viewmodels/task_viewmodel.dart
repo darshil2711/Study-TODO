@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/study_task.dart';
 import '../services/task_repository.dart';
+import '../logger.dart';
 
 /// ViewModel to manage state and handle business logic for Tasks,
 /// fulfilling the MVVM architecture requirement for Assignment 4.
@@ -11,18 +12,20 @@ class TaskViewModel extends ChangeNotifier {
   bool _isLoading = false;
 
   TaskViewModel(this._repository) {
-    loadTasks();
+    // Safely defer the loading to prevent state mutations while the widget tree is building
+    Future.microtask(() => loadTasks());
   }
 
   List<StudyTask> get tasks => _tasks;
   bool get isLoading => _isLoading;
 
   // Part 5 & 7: State Management & System Feedback (Loading states)
-  void loadTasks() {
+  Future<void> loadTasks() async {
     _isLoading = true;
     notifyListeners();
 
-    _tasks = _repository.loadTasks();
+    AppLogger.debug('Fetching tasks...');
+    _tasks = await _repository.loadTasks();
 
     _isLoading = false;
     notifyListeners();
@@ -33,7 +36,7 @@ class TaskViewModel extends ChangeNotifier {
     notifyListeners();
 
     await _repository.addTask(task);
-    _tasks = _repository.loadTasks(); // Refresh list
+    _tasks = await _repository.loadTasks(); // Refresh list
 
     _isLoading = false;
     notifyListeners();
@@ -41,13 +44,13 @@ class TaskViewModel extends ChangeNotifier {
 
   Future<void> updateTask(StudyTask task) async {
     await _repository.updateTask(task);
-    _tasks = _repository.loadTasks();
+    _tasks = await _repository.loadTasks();
     notifyListeners();
   }
 
   Future<void> deleteTask(String taskId) async {
     await _repository.deleteTask(taskId);
-    _tasks = _repository.loadTasks();
+    _tasks = await _repository.loadTasks();
     notifyListeners();
   }
 }
